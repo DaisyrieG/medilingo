@@ -26,7 +26,7 @@ const tokenPatterns: { token: TokenType; pattern: RegExp }[] = [
 ];
 
 const taglishDict: { [key: string]: string } = {
-  'take': 'inumin', 'apply': 'ipahid', 'consume': 'kainin', 'administer': 'ibigay', 'use': 'gamitin',
+  'take': 'uminom', 'apply': 'ipahid', 'consume': 'kainin', 'administer': 'ibigay', 'use': 'gamitin',
   'a': 'isang', 'an': 'isang', 'one': 'isang', '1': 'isang',
   'two': 'dalawang', '2': 'dalawang', 'three': 'tatlong', '3': 'tatlong',
   'four': 'apat na', '4': 'apat na', 'five': 'limang', '5': 'limang',

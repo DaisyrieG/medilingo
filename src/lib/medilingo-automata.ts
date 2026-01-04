@@ -15,13 +15,22 @@ const abbreviations: { [key: string]: string } = {
   'q6h': 'every 6 hours',
   'q8h': 'every 8 hours',
   'prn': 'as needed',
+  'ac': 'before meals',
+  'pc': 'after meals',
+  'hs': 'at bedtime',
+  'stat': 'immediately',
+  'qam': 'in the morning',
+  'qpm': 'at night',
+  'po': 'by mouth',
+  'npo': 'nothing by mouth'
 };
 
 const tokenPatterns: { token: TokenType; pattern: RegExp }[] = [
-  { token: 'ROUTE', pattern: /^(take|apply|consume|administer|use)\b/i },
+  // Add more action words to ROUTE
+  { token: 'ROUTE', pattern: /^(take|apply|consume|administer|use|insert|swallow|inhale)\b/i },
   { token: 'QUANTITY', pattern: /^(a|an|one|two|three|four|five|six|seven|eight|nine|ten|half|\d+(\.\d+)?)\b/i },
-  { token: 'UNIT', pattern: /^(tablet|capsule|pill|ml|milliliter|tablespoon|teaspoon|drop|spray|puff|application|lozenge|patch)s?\b/i },
-  { token: 'FREQUENCY', pattern: /^(every\s\d+\s(hours?|days?|weeks?|months?)|daily|once a day|twice a day|three times a day|four times a day|as needed)\b/i },
+  { token: 'UNIT', pattern: /^(tablet|capsule|pill|ml|milliliter|tablespoon|teaspoon|drop|spray|puff|application|lozenge|patch|sachet|unit|mcg|mg)s?\b/i },
+  { token: 'FREQUENCY', pattern: /^(every\s\d+\s(hours?|days?|weeks?|months?)|daily|once a day|twice a day|three times a day|four times a day|as needed|before meals|after meals|at bedtime|immediately|in the morning|at night)\b/i },
   { token: 'PERIOD', pattern: /^(\.)/i }
 ];
 
@@ -39,8 +48,29 @@ const taglishDict: { [key: string]: string } = {
   'daily': 'araw-araw', 'once a day': 'isang beses sa isang araw', 'twice a day': 'dalawang beses sa isang araw',
   'three times a day': 'tatlong beses sa isang araw', 'four times a day': 'apat na beses sa isang araw',
   'as needed': 'kung kinakailangan',
-  'every': 'bawat', 'hours': 'na oras', 'hour': 'oras', 'days': 'na araw', 'day': 'araw',
-  'weeks': 'na linggo', 'week': 'linggo', 'months': 'na buwan', 'month': 'buwan'
+  'every': 'bawat', 'hours': 'oras', 'hour': 'oras', 'days': 'na araw', 'day': 'araw',
+  'weeks': 'na linggo', 'week': 'linggo', 'months': 'na buwan', 'month': 'buwan', // Timing & Meal-related (Expansion for ac, pc, etc.)
+  'before meals': 'bago kumain',
+  'after meals': 'pagkatapos kumain',
+  'with meals': 'kasabay ng pagkain',
+  'at bedtime': 'bago matulog',
+  'in the morning': 'sa umaga',
+  'in the afternoon': 'sa hapon',
+  'at night': 'sa gabi',
+  'immediately': 'ngayon na',
+  'every other day': 'tuwing makalawa',
+  'twice weekly': 'dalawang beses sa isang linggo',
+  'for seven days': 'sa loob ng pitong araw',
+  'insert': 'ipasok',
+  'swallow': 'lunukin',
+  'inhale': 'langhapin',
+  'sachet': 'sachet',
+  'unit': 'yunit',
+  'mcg': 'micrograms',
+  'mg': 'milligrams',
+  'of': 'ng',
+  'and': 'at',
+  'then': 'pagkatapos'
 };
 
 function preprocess(input: string): string {
@@ -110,6 +140,7 @@ function validateDFA(tokens: Token[]): void {
         break;
       case 4: // After FREQUENCY
         if (token.type === 'PERIOD') state = 5;
+        else if (token.type === 'FREQUENCY' && token.value === 'as needed') state = 4; // Allow "as needed" after frequency
         else throw new Error(`Invalid sequence. After frequency, expected end of instruction, but got ${token.type.toLowerCase()}.`);
         break;
       default:

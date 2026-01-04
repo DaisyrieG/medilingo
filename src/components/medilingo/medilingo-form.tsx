@@ -101,9 +101,9 @@ export default function MediLingoForm() {
           {state.status === 'success' && state.data && (
             <Alert className="border-accent bg-accent/10 text-accent-foreground">
               <CheckCircle2 className="h-5 w-5 text-accent" />
-              <AlertTitle className="font-bold text-accent-foreground">Simplification Successful</AlertTitle>
+              <AlertTitle className="font-bold text-white">Simplification Successful</AlertTitle>
               <AlertDescription className="mt-2 space-y-2 text-base">
-                 <p className="font-medium">"{state.input}" translates to:</p>
+                 <p className="font-medium text-white">"{state.input}" translates to:</p>
                  <div className="flex items-start gap-3 rounded-md bg-background p-4">
                     <Bot className="h-6 w-6 flex-shrink-0 text-primary" />
                     <p className="text-lg font-semibold text-foreground">{state.data}</p>
@@ -115,8 +115,8 @@ export default function MediLingoForm() {
           {state.status === 'error' && state.message && (
              <Alert variant="destructive">
               <XCircle className="h-5 w-5" />
-              <AlertTitle>Validation Error</AlertTitle>
-              <AlertDescription>
+              <AlertTitle className="text-white">Validation Error</AlertTitle>
+              <AlertDescription className="text-white">
                 {state.message}
               </AlertDescription>
             </Alert>

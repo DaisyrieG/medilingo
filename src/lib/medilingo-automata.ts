@@ -26,11 +26,10 @@ const abbreviations: { [key: string]: string } = {
 };
 
 const tokenPatterns: { token: TokenType; pattern: RegExp }[] = [
-  // Add more action words to ROUTE
-  { token: 'ROUTE', pattern: /^(take|apply|consume|administer|use|insert|swallow|inhale)\b/i },
-  { token: 'QUANTITY', pattern: /^(a|an|one|two|three|four|five|six|seven|eight|nine|ten|half|\d+(\.\d+)?)\b/i },
-  { token: 'UNIT', pattern: /^(tablet|capsule|pill|ml|milliliter|tablespoon|teaspoon|drop|spray|puff|application|lozenge|patch|sachet|unit|mcg|mg)s?\b/i },
-  { token: 'FREQUENCY', pattern: /^(every\s\d+\s(hours?|days?|weeks?|months?)|daily|once a day|twice a day|three times a day|four times a day|as needed|before meals|after meals|at bedtime|immediately|in the morning|at night)\b/i },
+  { token: 'FREQUENCY', pattern: /^(every\s\d+\s(hours?|days?|weeks?|months?)|once a day|twice a day|three times a day|four times a day|daily|as needed|before meals|after meals|at bedtime|immediately|in the morning|at night)\b/i },
+  { token: 'ROUTE', pattern: /^(take|apply|consume|administer|use|insert|swallow|inhale)\b/i },  
+  { token: 'QUANTITY', pattern: /^(a|an|one|two|three|four|five|six|seven|eight|nine|ten|half|\d+(\.\d+)?)\b/i },  
+  { token: 'UNIT', pattern: /^(tablet|capsule|pill|ml|milliliter|tablespoon|teaspoon|drop|spray|puff|application|lozenge|patch|sachet|unit|mcg|mg|ointment)s?\b/i },  
   { token: 'PERIOD', pattern: /^(\.)/i }
 ];
 
@@ -41,36 +40,16 @@ const taglishDict: { [key: string]: string } = {
   'four': 'apat na', '4': 'apat na', 'five': 'limang', '5': 'limang',
   'six': 'anim na', '6': 'anim na', 'seven': 'pitong', '7': 'pitong',
   'eight': 'walong', '8': 'walong', 'nine': 'siyam na', '9': 'siyam na', 'ten': 'sampung', '10': 'sampung',
-  'half': 'kalahating',
-  'tablet': 'tableta', 'capsule': 'kapsula', 'pill': 'tableta', 'ml': 'ml', 'milliliter': 'milliliter',
+  'half': 'kalahating','tablet': 'tableta', 'capsule': 'kapsula', 'pill': 'tableta', 'ml': 'ml', 'milliliter': 'milliliter',
   'tablespoon': 'kutsara', 'teaspoon': 'kutsarita', 'drop': 'patak', 'spray': 'isprey',
   'puff': 'puff', 'application': 'aplikasyon', 'lozenge': 'lozenge', 'patch': 'patch',
   'daily': 'araw-araw', 'once a day': 'isang beses sa isang araw', 'twice a day': 'dalawang beses sa isang araw',
   'three times a day': 'tatlong beses sa isang araw', 'four times a day': 'apat na beses sa isang araw',
-  'as needed': 'kung kinakailangan',
-  'every': 'bawat', 'hours': 'oras', 'hour': 'oras', 'days': 'na araw', 'day': 'araw',
-  'weeks': 'na linggo', 'week': 'linggo', 'months': 'na buwan', 'month': 'buwan', // Timing & Meal-related (Expansion for ac, pc, etc.)
-  'before meals': 'bago kumain',
-  'after meals': 'pagkatapos kumain',
-  'with meals': 'kasabay ng pagkain',
-  'at bedtime': 'bago matulog',
-  'in the morning': 'sa umaga',
-  'in the afternoon': 'sa hapon',
-  'at night': 'sa gabi',
-  'immediately': 'ngayon na',
-  'every other day': 'tuwing makalawa',
-  'twice weekly': 'dalawang beses sa isang linggo',
-  'for seven days': 'sa loob ng pitong araw',
-  'insert': 'ipasok',
-  'swallow': 'lunukin',
-  'inhale': 'langhapin',
-  'sachet': 'sachet',
-  'unit': 'yunit',
-  'mcg': 'micrograms',
-  'mg': 'milligrams',
-  'of': 'ng',
-  'and': 'at',
-  'then': 'pagkatapos'
+  'as needed': 'kung kinakailangan','every': 'bawat', 'hours': 'oras', 'hour': 'oras', 'days': 'na araw', 'day': 'araw',
+  'weeks': 'na linggo', 'week': 'linggo', 'months': 'na buwan', 'month': 'buwan','before meals': 'bago kumain',
+  'after meals': 'pagkatapos kumain','with meals': 'kasabay ng pagkain','at bedtime': 'bago matulog','in the morning': 'sa umaga','in the afternoon': 'sa hapon',
+  'at night': 'sa gabi','immediately': 'ngayon na','every other day': 'tuwing makalawa', 'twice weekly': 'dalawang beses sa isang linggo','for seven days': 'sa loob ng pitong araw','insert': 'ipasok','swallow': 'lunukin','inhale': 'langhapin','sachet': 'sachet','unit': 'yunit','mcg': 'micrograms','mg': 'milligrams','of': 'ng', 'and': 'at', 'then': 'pagkatapos', 'ointment': 'pamahid',
+  'capsules': 'kapsula'
 };
 
 function preprocess(input: string): string {
@@ -80,6 +59,8 @@ function preprocess(input: string): string {
   }
   if (!processed.endsWith('.')) {
     processed += ' .';
+  } else {
+    processed = processed.replace(/\.$/, ' .');
   }
   return processed.replace(/\s+/g, ' ').trim();
 }
@@ -176,10 +157,8 @@ function simplifyFST(tokens: Token[]): string {
         }
     }
 
-    // Basic grammatical reconstruction
     if (parts.length > 0) {
       if (!hasQuantity && tokens.some(t => t.type === 'UNIT')) {
-        // e.g. "Take tablet daily" -> "Inumin ang tableta araw-araw"
         const unitIndex = tokens.findIndex(t => t.type === 'UNIT');
         if (unitIndex !== -1 && unitIndex > 0) {
            parts.splice(unitIndex, 0, 'ang');
@@ -197,8 +176,6 @@ function simplifyFST(tokens: Token[]): string {
     result = result.charAt(0).toUpperCase() + result.slice(1) + '.';
     return result.replace(/\s+\./, '.');
 }
-
-
 export function processDosageInstruction(input: string): string {
   if (!input) {
     throw new Error("Input cannot be empty.");
@@ -207,4 +184,28 @@ export function processDosageInstruction(input: string): string {
   const tokens = tokenize(preprocessed);
   validateDFA(tokens);
   return simplifyFST(tokens);
+}
+
+export function processMultipleInstructions(input: string): string[] {
+  if (!input) {
+    throw new Error("Input cannot be empty.");
+  }
+
+  const lines = input.split(/\r?\n/);
+  const results: string[] = [];
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    
+    if (trimmedLine === "") continue;
+
+    try {
+      const translated = processDosageInstruction(trimmedLine);
+      results.push(translated);
+    } catch (error: any) {
+      results.push(`ERROR on line "${trimmedLine}": ${error.message}`);
+    }
+  }
+
+  return results;
 }

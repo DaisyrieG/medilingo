@@ -1,8 +1,8 @@
-
 'use server';
 
 import { z } from 'zod';
-import { processDosageInstruction } from '@/lib/medilingo-automata';
+
+import { processMultipleInstructions } from '@/lib/medilingo-automata';
 
 export interface FormState {
   status: 'idle' | 'success' | 'error';
@@ -12,7 +12,7 @@ export interface FormState {
 }
 
 const schema = z.object({
-  dosage: z.string().min(3, { message: 'Please enter a dosage instruction.' }).max(200, { message: 'Instruction is too long.' }),
+  dosage: z.string().min(3, { message: 'Please enter a dosage instruction.' }).max(500, { message: 'Instruction is too long.' }),
 });
 
 export async function simplifyPrescription(
@@ -34,8 +34,16 @@ export async function simplifyPrescription(
   const input = validatedFields.data.dosage;
 
   try {
-    const result = processDosageInstruction(input);
-    return { status: 'success', data: result, input };
+   
+    const resultsArray = processMultipleInstructions(input);
+    
+    const resultString = resultsArray.join('\n');
+
+    return { 
+      status: 'success', 
+      data: resultString, 
+      input 
+    };
   } catch (error) {
     return {
       status: 'error',

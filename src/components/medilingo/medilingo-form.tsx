@@ -106,7 +106,7 @@ export default function MediLingoForm() {
                  <p className="font-medium text-white">"{state.input}" translates to:</p>
                  <div className="flex items-start gap-3 rounded-md bg-background p-4">
                     <Bot className="h-6 w-6 flex-shrink-0 text-primary" />
-                    <p className="text-lg font-semibold text-foreground">{state.data}</p>
+                    <p className="text-lg font-semibold text-foreground whitespace-pre-line">{state.data}</p>
                  </div>
               </AlertDescription>
             </Alert>
